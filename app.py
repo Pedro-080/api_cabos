@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,request
 import pandas as pd
 import json
 
@@ -21,7 +21,7 @@ def listar_cabos():
     return cables
 
 @app.get('/cabo/<int:index>')
-def echo_string(index):
+def get_cabo(index):
     index-=1
     row = df.iloc[index]
     print(row)
@@ -29,5 +29,18 @@ def echo_string(index):
     row_json = json.dumps(row_dict)
     return row_json
 
+@app.get('/test')
+def users():
+    # Obtenha a lista de IDs de usuários a partir da query string
+    user_ids_str = request.args.get('ids')
+    user_ids = [int(id) for id in user_ids_str.split(',')]
+    
+    # Faça algo com a lista de IDs (por exemplo, buscar informações sobre esses usuários no banco de dados)
+    # ...
+    
+    # Retorne uma resposta
+    return f'IDs de usuários: {user_ids}'
 
-app.run()
+
+if __name__ =="__main__":
+  app.run()
