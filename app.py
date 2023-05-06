@@ -19,7 +19,7 @@ condutor = Cabo()
 
 df = condutor.df
 
-@app.get('/cabo')
+@app.get('/cabo') #Lista todos os condutores
 def listar_cabos():
     json_data=[]                                    
     for idx,row in df.iterrows():
@@ -37,7 +37,7 @@ def select_cabo(index):
     row_json = json.dumps(row_dict)
     return row_json
 
-@app.get('/set_cabo/<int:index>') #/set_cabo/3
+@app.get('/set_cabo/<int:index>') #/set_cabo/2
 def set_cabo(index):
     # condutor.set_cabo(index)
     app.config['tag']=condutor.set_cabo(index)
@@ -75,7 +75,6 @@ def get_t01():
     t01_global = app.config['t01']
     return f'Vao global: {t01_global}'
 
-
 @app.get('/set_tmin') #/set_tmin?tmin=50.20
 def set_tmin():
     app.config['t_min'] = request.args.get('tmin', default=0.0, type=float)
@@ -94,7 +93,7 @@ def set_tope():
     t_ope = app.config['t_ope']
     return f'Temperatura de operacao: {t_ope} °C'
 
-@app.get('/load_temp')
+@app.get('/load_temp') #carrega todas as temperaturas
 def load_temp():
     t_min=app.config['t_min']
     t_eds=app.config['t_eds']
@@ -104,36 +103,17 @@ def load_temp():
 
 @app.get('/cabo/esticamento')
 def esticamento():
-    # vao=app.config['vao']
-    # t01=app.config['t01']
-    variaveis = condutor.__dict__
-    # print()
-    return jsonify(variaveis)
-    # df_esticamento=condutor.dados_esticamento(t01,vao)
-    # print(type(df_esticamento))
-    # json_data=[]                                    
-    # for idx,row in df.iterrows():
-    #     json_item = {"id":idx,"cabo":row['Tag']}
-    #     json_data.append(json_item)
-    # cables = pd.io.json.dumps(json_data)
-    # return cables
-    return 
+    load_temp()
+    vao=app.config['vao']
+    t01=app.config['t01']
+    condutor.dados_esticamento(vao,t01)
+    esticamento = condutor.esticamento.to_json(orient='records')
+ 
+    # var_class = condutor.__dict__
+    # variaveis = {k: v for k,v in var_class.items() if not isinstance(v, pd.DataFrame)}
 
-# @app.get('/dados_carregados')
-
-
-
-
-@app.route('/meu_float')
-def minha_rota():
-    # obter o valor do parâmetro de consulta "valor"
-    valor = request.args.get('valor', default=0.0, type=float)
-    
-    # realizar alguma operação com o valor recebido
-    # resultado = valor * 2
-    
-    return 'O valor recebido foi: {}'.format(valor)
+    return esticamento
 
 
 if __name__ =="__main__":   
-    app.run(debug=True)
+    app.run()

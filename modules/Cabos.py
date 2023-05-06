@@ -2,6 +2,7 @@
 
 import pandas as pd
 import numpy as np
+from flask import jsonify
 # from Biblioteca import *
 
 class Cabo:
@@ -130,8 +131,11 @@ if __name__ == "__main__":
     T01 = 300
 
     condutor = Cabo()
-    print(condutor.df)
-    condutor.set_cabo(1)
+    # print(condutor.df)
+    # condutor.set_cabo(1)
+    # print(condutor.__dict__)
+    print(jsonify(condutor.__dict__))
+    
     # condutor.set_temperaturas(t_min,t_eds,t_ope)
     # condutor.dados_esticamento(T01,vao) 
     # print(condutor.cabo)
