@@ -1,15 +1,23 @@
-from flask import Flask,request
+from flask import Flask,request,redirect,jsonify
+from modules.Cabos import Cabo
 import pandas as pd
 import json
+import pytest
 
 app = Flask(__name__)
 app_version = 'pre-alpha 0.1'
 
-df = pd.read_csv('data/Dados_Cabos.csv')
-#Cria o dataframe a partir do banco de dados csv
+app.config['vao']=100
+app.config['tag']=None
+app.config['t01']=300
+app.config['t_min']=16
+app.config['t_eds']=22
+app.config['t_ope']=75
 
-df.index = pd.RangeIndex(start=1,stop=len(df)+1,step=1)
-#Reseta o index do dataframe para começar em 1
+
+condutor = Cabo()
+
+df = condutor.df
 
 @app.get('/cabo')
 def listar_cabos():
@@ -20,8 +28,8 @@ def listar_cabos():
     cables = pd.io.json.dumps(json_data)
     return cables
 
-@app.get('/cabo/<int:index>')
-def get_cabo(index):
+@app.get('/cabo/<int:index>') #/cabo/3
+def select_cabo(index):
     index-=1
     row = df.iloc[index]
     print(row)
@@ -29,18 +37,103 @@ def get_cabo(index):
     row_json = json.dumps(row_dict)
     return row_json
 
-@app.get('/test')
-def users():
-    # Obtenha a lista de IDs de usuários a partir da query string
-    user_ids_str = request.args.get('ids')
-    user_ids = [int(id) for id in user_ids_str.split(',')]
+@app.get('/set_cabo/<int:index>') #/set_cabo/3
+def set_cabo(index):
+    # condutor.set_cabo(index)
+    app.config['tag']=condutor.set_cabo(index)
+    return condutor.cabo
+
+@app.get('/set_vao') #/set_vao?vao=50.20
+def set_vao():
+    #define a variavel global "vao" como entrada
+    app.config['vao'] = request.args.get('vao', default=0.0, type=float)
     
-    # Faça algo com a lista de IDs (por exemplo, buscar informações sobre esses usuários no banco de dados)
-    # ...
+    # variavel de teste
+    meu_vao = app.config['vao']
     
-    # Retorne uma resposta
-    return f'IDs de usuários: {user_ids}'
+    # retorna a variavel de teste meu_vao
+    return f'Vao: {meu_vao}'
+
+@app.get('/get_vao') #funcao de teste que retorna o valor global de "vao"
+def get_vao():
+    vao_global = app.config['vao']
+    return f'Vao global: {vao_global}'
+
+@app.get('/set_t01') #/set_t01?t01=230
+def set_t01():
+    #define a variavel global "vao" como entrada
+    app.config['t01'] = request.args.get('t01', default=0.0, type=float)
+    
+    # variavel de teste
+    t01 = app.config['t01']
+    
+    # retorna a variavel de teste meu_vao
+    return f'T01: {t01}'
+
+@app.get('/get_t01') #funcao de teste que retorna o valor global de "t01"
+def get_t01():
+    t01_global = app.config['t01']
+    return f'Vao global: {t01_global}'
 
 
-if __name__ =="__main__":
-  app.run()
+@app.get('/set_tmin') #/set_tmin?tmin=50.20
+def set_tmin():
+    app.config['t_min'] = request.args.get('tmin', default=0.0, type=float)
+    t_min = app.config['t_min']
+    return f'Temperatura mínima: {t_min} °C'
+    
+@app.get('/set_teds') #/set_teds?teds=50.20
+def set_teds():
+    app.config['t_eds'] = request.args.get('teds', default=0.0, type=float)  
+    t_eds = app.config['t_eds']
+    return f'Temperatura eds: {t_eds} °C'
+
+@app.get('/set_tope') #/set_tope?tope=75
+def set_tope():
+    app.config['t_ope'] = request.args.get('tope', default=0.0, type=float)
+    t_ope = app.config['t_ope']
+    return f'Temperatura de operacao: {t_ope} °C'
+
+@app.get('/load_temp')
+def load_temp():
+    t_min=app.config['t_min']
+    t_eds=app.config['t_eds']
+    t_ope=app.config['t_ope']
+    condutor.set_temperaturas(t_min,t_eds,t_ope)
+    return condutor.get_temperaturas()
+
+@app.get('/cabo/esticamento')
+def esticamento():
+    # vao=app.config['vao']
+    # t01=app.config['t01']
+    variaveis = condutor.__dict__
+    # print()
+    return jsonify(variaveis)
+    # df_esticamento=condutor.dados_esticamento(t01,vao)
+    # print(type(df_esticamento))
+    # json_data=[]                                    
+    # for idx,row in df.iterrows():
+    #     json_item = {"id":idx,"cabo":row['Tag']}
+    #     json_data.append(json_item)
+    # cables = pd.io.json.dumps(json_data)
+    # return cables
+    return 
+
+# @app.get('/dados_carregados')
+
+
+
+
+@app.route('/meu_float')
+def minha_rota():
+    # obter o valor do parâmetro de consulta "valor"
+    valor = request.args.get('valor', default=0.0, type=float)
+    
+    # realizar alguma operação com o valor recebido
+    # resultado = valor * 2
+    
+    return 'O valor recebido foi: {}'.format(valor)
+
+
+if __name__ =="__main__":   
+    app.run(debug=True)
