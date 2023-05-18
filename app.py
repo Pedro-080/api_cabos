@@ -3,6 +3,7 @@ from modules.Cabos import Cabo
 import pandas as pd
 import json
 import pytest
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 app_version = 'pre-alpha 0.1'
@@ -20,15 +21,26 @@ condutor = Cabo()
 df = condutor.df
 
 @app.get('/cabo') #Lista todos os condutores
+@cross_origin()
 def listar_cabos():
     json_data=[]                                    
     for idx,row in df.iterrows():
-        json_item = {"id":idx,"cabo":row['Tag']}
+        # json_item = {"id":idx,"cabo":row['Tag']}
+        json_item = {"id":idx,
+                 "cabo":row['Tag'],
+                 "area":row['ÁREA'],
+                 "diametro":row['DIÂMETRO'],
+                 "massa":row['MASSA_LINEAR'],
+                 "elasticidade":row['MÓDULO_DE_ELASTICIDADE'],
+                 "dilatacao": row['COEFICIENTE_DE_DILATAÇÃO_TÉRMICA'],
+                 "ruptura": row["Carga_de_ruptura"]
+                }
         json_data.append(json_item)
     cables = pd.io.json.dumps(json_data)
     return cables
 
 @app.get('/cabo/<int:index>') #/cabo/3
+@cross_origin()
 def select_cabo(index):
     index-=1
     row = df.iloc[index]
@@ -124,6 +136,7 @@ def load_temp():
     return condutor.get_temperaturas()
 
 @app.get('/cabo/<int:index>/load') #/cabo/2/load?vao=100&t01=200&tmin=16&teds=22&tope=75
+@cross_origin()
 def load(index):
     set_cabo(index)
     set_vao(request.args.get('vao',default=0.0, type=float))
