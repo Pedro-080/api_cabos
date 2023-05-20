@@ -60,7 +60,9 @@ class Cabo:
 
         t2 = list(np.linspace(self.T_min,self.T_eds+16,12))
         t2.append(self.T_operacao)
-
+        
+        t2 = Add_Teds(t2, self.T_eds)
+        
         
         Metodo_calculo = "Numpy" #Numpy ou Newton
         p2=self.p1               #p1=p2, desconsiderando pressão de vento(feature futura)
@@ -121,6 +123,22 @@ def Newton(a,b,c,d):#Metodo de calculo usando Newton Raphson
     return x0
     pass
 
+def Add_Teds(lista, T_eds):
+    # Busca o valor mais próximo ao Teds e o converte em EDS
+    valor_proximo = None
+    diferenca_minima = float('inf')
+
+    for valor in lista:
+        diferenca = abs(valor - T_eds)
+        if diferenca < diferenca_minima:
+            diferenca_minima = diferenca
+            valor_proximo = valor
+    for i in range(len(lista)):
+        if lista[i] == valor_proximo:
+            lista[i]=T_eds  
+    return lista
+    
+
 
 if __name__ == "__main__":
 
@@ -134,7 +152,7 @@ if __name__ == "__main__":
     # print(condutor.df)
     # condutor.set_cabo(1)
     # print(condutor.__dict__)
-    print(jsonify(condutor.__dict__))
+    # print(jsonify(condutor.__dict__))
     
     # condutor.set_temperaturas(t_min,t_eds,t_ope)
     # condutor.dados_esticamento(T01,vao) 
